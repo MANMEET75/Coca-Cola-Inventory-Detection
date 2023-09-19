@@ -1,0 +1,6 @@
+ultralytics
+yt_dlp
+youtube-dl
+streamlit
+pytube
+pafy
