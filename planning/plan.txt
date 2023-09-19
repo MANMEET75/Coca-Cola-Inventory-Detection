@@ -1,0 +1,7 @@
+1) we will consider coco dataset from roboflow and we will firstly remove unessential objects from pretrained model like animals and many more
+2) we will have to add cans images in coco dataset
+3) we will have to add custom jugs images in coco dataset some of them are detecting in the form of bowls
+4) we will have to add butter image in coco dataset as some of the peoples are there who use to place amul butter inside coco cola refrigerators
+5) we will have to consider frooti packs as well as they are not present in the form of bottles
+6) we will have to deal with bread over here
+7) 

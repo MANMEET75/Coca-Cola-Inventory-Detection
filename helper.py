@@ -26,6 +26,16 @@ def image_to_base64(image):
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
+
+
+
+
+
+
+
+
+
+
 def display_tracker_options():
     display_tracker = st.radio("Display Tracker", ('Yes', 'No'))
     is_display_tracker = True if display_tracker == 'Yes' else False

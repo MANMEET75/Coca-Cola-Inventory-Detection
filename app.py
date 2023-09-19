@@ -75,12 +75,19 @@ def is_image_blurred(uploaded_image, threshold=500):
     is_blurred = variance < threshold
 
     return is_blurred, variance
-st.sidebar.header("Model Configuration")
 
-confidence = float(st.sidebar.slider("Select Model Confidence", 0, 100, 40)) / 100
+st.sidebar.header("MODEL CONFIGURATION")
 
-if confidence < 0 or confidence > 1:
-    st.error("Please select a valid confidence level between 0 and 100.")
+
+# slider for the confidence level of the pretrained model over here
+pretrained_confidence = float(st.sidebar.slider("Pretrained Model Confidence", 0, 100, 40)) / 100
+
+
+# Slider for the confidence level of the custom model
+custom_confidence = float(st.sidebar.slider("Custom Model Confidence", 0, 100, 40)) / 100
+
+if pretrained_confidence  < 0 or pretrained_confidence  > 1:
+    st.error("Please select a valid confidence level between 0 and 100 for the pretrained model.")
 
 model_type = st.sidebar.radio("Select Task", ['Detection',"Can Detection"])
 
@@ -150,7 +157,7 @@ if source_radio == settings.IMAGE:
 
     if source_img is not None:
         if st.sidebar.button('Detect Objects'):
-            res = pretrained_model.predict(uploaded_image, conf=confidence)
+            res = pretrained_model.predict(uploaded_image, conf=pretrained_confidence )
             num_detected = 0  # Initialize the counter for detected elements
 
             for i, result in enumerate(res):
@@ -166,7 +173,6 @@ if source_radio == settings.IMAGE:
                     if class_names[j] == "Person":
                         result.scores[j] = 0.0
   
-                    
                 res_plotted = result.plot()[:, :, ::-1]
                 if i == 0:
                     with col2:
@@ -196,6 +202,10 @@ if source_radio == settings.IMAGE:
 
             custom_model_path = Path(settings.CUSTOM_MODEL)  # Update with the path to the custom model
 
+
+            if custom_confidence < 0 or custom_confidence > 1:
+                st.error("Please select a valid confidence level between 0 and 100 for the custom model.")
+
             try:
                 custom_model = helper.load_model(custom_model_path)
             except Exception as ex:
@@ -203,7 +213,7 @@ if source_radio == settings.IMAGE:
                 st.error(ex)
 
             if source_radio == settings.IMAGE and source_img is not None:
-                res_custom = custom_model.predict(uploaded_image, conf=confidence)
+                res_custom = custom_model.predict(uploaded_image, conf=custom_confidence)
                 custom_num_detected = 0  # Initialize the counter for custom model detected elements
 
                 col1, col2 = st.columns(2)  # Create two columns for displaying images
@@ -254,8 +264,56 @@ if source_radio == settings.IMAGE:
 # elif source_radio == settings.VIDEO:
 #     helper.play_stored_video(confidence, model)
 
-# elif source_radio == settings.WEBCAM:
-#     helper.play_webcam(confidence, model)
+elif source_radio == settings.WEBCAM:
+    st.sidebar.header("Real-time Object Detection")
+
+    # Create a VideoCapture object to capture frames from the webcam
+    cap = cv2.VideoCapture(0)  # Use the default webcam (usually index 0)
+
+    # Check if the webcam opened successfully
+    if not cap.isOpened():
+        st.error("Error: Could not open the webcam.")
+    else:
+        while True:
+            # Read a frame from the webcam
+            ret, frame = cap.read()
+
+            if not ret:
+                st.error("Error: Could not read a frame from the webcam.")
+                break
+
+            # Perform object detection on the frame (similar to how you did for the image)
+            # You can use either the pretrained_model or custom_model here
+            # For example, using the pretrained model:
+            res = pretrained_model.predict(frame, conf=pretrained_confidence)
+
+            # Display the frame with detected objects
+            # You can use the same code for displaying and processing the detections
+            # as you did for the image
+            for i, result in enumerate(res):
+                boxes = result.boxes
+                class_names = result.names
+
+                # Display the detected objects on the frame
+                for box, name in zip(boxes, class_names):
+                    left, top, right, bottom = box
+                    cv2.rectangle(frame, (int(left), int(top)), (int(right), int(bottom)), (0, 255, 0), 2)
+                    cv2.putText(frame, name, (int(left), int(top) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+                # Display the frame with detected objects
+                st.image(frame, caption=f'Detected Frame {i+1}', channels='BGR', use_column_width=True)
+
+            # Display the total count of detected elements (you can update this accordingly)
+            st.write(f"Total number of detected elements: {len(boxes)}")
+
+            # Check for user input to exit the real-time detection
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    # Release the VideoCapture object and close any OpenCV windows
+    cap.release()
+    cv2.destroyAllWindows()
+
 
 # elif source_radio == settings.RTSP:
 #     helper.play_rtsp_stream(confidence, model)
