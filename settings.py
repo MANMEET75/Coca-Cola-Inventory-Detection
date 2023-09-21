@@ -47,7 +47,7 @@ VIDEOS_DICT = {
 MODEL_DIR = ROOT / 'weights'
 DETECTION_MODEL = MODEL_DIR / 'yolov8l.pt'
 SEGMENTATION_MODEL = MODEL_DIR / 'yolov8n-seg.pt'
-CUSTOM_MODEL = MODEL_DIR / 'TrainedOn1250Images.pt'
+CUSTOM_MODEL = MODEL_DIR / 'TrainedOn2023.pt'
 CanDetectionModel = MODEL_DIR / 'cans.pt'
 
 # Webcam

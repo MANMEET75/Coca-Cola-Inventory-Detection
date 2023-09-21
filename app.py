@@ -58,7 +58,7 @@ st.markdown('<div class="navbar">'
             '</div>'.format(helper.image_to_base64(logo_image)), unsafe_allow_html=True)
 
 # Function to check if an image is blurred
-def is_image_blurred(uploaded_image, threshold=500):
+def is_image_blurred(uploaded_image, threshold=10):
     # Convert BytesIO object to an image
     pil_image = Image.open(uploaded_image)
     
@@ -254,13 +254,6 @@ if source_radio == settings.IMAGE:
                     st.write("Inventory is not Polluted")
 
                 
-
-
-
-
-        
-
-
 # elif source_radio == settings.VIDEO:
 #     helper.play_stored_video(confidence, model)
 
