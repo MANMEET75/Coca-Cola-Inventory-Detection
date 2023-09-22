@@ -47,8 +47,10 @@ VIDEOS_DICT = {
 MODEL_DIR = ROOT / 'weights'
 DETECTION_MODEL = MODEL_DIR / 'yolov8l.pt'
 SEGMENTATION_MODEL = MODEL_DIR / 'yolov8n-seg.pt'
-CUSTOM_MODEL = MODEL_DIR / 'TrainedOn2023.pt'
-CanDetectionModel = MODEL_DIR / 'cans.pt'
+CUSTOM_MODEL = MODEL_DIR / 'TrainedOn2023Images.pt'
+# CanDetectionModel = MODEL_DIR / 'cans.pt'
+FrootiDetectionModel = MODEL_DIR / 'frooti.pt'
+ContainerDetectionModel = MODEL_DIR / 'cans.pt'
 
 # Webcam
 WEBCAM_PATH = 0

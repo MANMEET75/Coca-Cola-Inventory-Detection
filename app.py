@@ -49,7 +49,7 @@ st.markdown(css_styles, unsafe_allow_html=True)
 
 # Render the navbar
 st.markdown('<div class="navbar">'
-            '<div class="navbar-title">CokeDetectionAI using YOLOv8</div>'
+            '<div class="navbar-title">Coca Cola Inventory Detection</div>'
             '<div class="logo">'
             '<img src="data:image/png;base64,{}" alt="Logo">'
             '</div>'
@@ -89,7 +89,7 @@ custom_confidence = float(st.sidebar.slider("Custom Model Confidence", 0, 100, 4
 if pretrained_confidence  < 0 or pretrained_confidence  > 1:
     st.error("Please select a valid confidence level between 0 and 100 for the pretrained model.")
 
-model_type = st.sidebar.radio("Select Task", ['Detection',"Can Detection"])
+model_type = st.sidebar.radio("Select Task", ['Detection',"Detect Containers","Frooti Detection","Detect Polyethene","Detect Chocolates"])
 
 if model_type == 'Detection':
     pretrained_model_path = Path(settings.DETECTION_MODEL)
@@ -107,6 +107,19 @@ if model_type == 'Detection':
 elif model_type == 'Can Detection':
     # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
     pretrained_model_path = Path(settings.CanDetectionModel)
+    custom_model_path = Path(settings.CUSTOM_MODEL)
+
+elif model_type == 'Frooti Detection':
+    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
+    pretrained_model_path = Path(settings.FrootiDetectionModel)
+    custom_model_path = Path(settings.CUSTOM_MODEL)
+elif model_type == 'Detect Containers':
+    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
+    pretrained_model_path = Path(settings.FrootiDetectionModel)
+    custom_model_path = Path(settings.CUSTOM_MODEL)
+elif model_type == 'Detect Polyethene':
+    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
+    pretrained_model_path = Path(settings.FrootiDetectionModel)
     custom_model_path = Path(settings.CUSTOM_MODEL)
 
     # if detection_type == 'Default':
