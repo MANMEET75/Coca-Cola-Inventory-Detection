@@ -18,7 +18,7 @@ pip install -r requirements.txt
 ```bash
 streamlit run app.py
 ```
-### Run the following command to create a separate Streamlit application for blur detection
+### Run the following command to run a separate Streamlit application for blur detection
 ```bash
 streamlit run main.py
 ```
