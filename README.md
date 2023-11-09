@@ -20,7 +20,7 @@ streamlit run app.py
 ```
 ### Run the following command to run a separate Streamlit application for blur detection
 ```bash
-streamlit run main.py
+streamlit run blur.py
 ```
 ## AWS-CICD-Deployment-with-Github-Actions
 
