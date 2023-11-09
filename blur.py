@@ -1,10 +1,10 @@
-import cv2
-import numpy as np
 import streamlit as st
 from PIL import Image
+import numpy as np
+import cv2
 
 # Function to check if an image is blurred
-def is_image_blurred(uploaded_image, threshold=500):
+def is_image_blurred(uploaded_image, threshold=550):
     # Convert BytesIO object to an image
     pil_image = Image.open(uploaded_image)
     
@@ -22,21 +22,18 @@ def is_image_blurred(uploaded_image, threshold=500):
 
     return is_blurred, variance
 
-# Streamlit code to upload an image and check for blurriness
-st.title("Image Blurriness Detector")
+# Streamlit UI
+st.title("Image Blur Detection")
 
-# Upload an image using Streamlit
-uploaded_image = st.file_uploader("Upload an image...", type=("jpg", "jpeg", "png"))
+uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
 if uploaded_image is not None:
-    # Display the uploaded image
+    is_blurred, variance = is_image_blurred(uploaded_image)
     st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
 
-    # Check if the image is blurred
-    is_blurred, variance = is_image_blurred(uploaded_image)
-
-    # Display the result
     if is_blurred:
-        st.write(f"The image is blurred. Variance of Laplacian: {variance:.2f}")
+        st.write(f"The uploaded image is blurred with a variance of {variance:.2f}.")
     else:
-        st.write(f"The image is not blurred. Variance of Laplacian: {variance:.2f}")
+        st.write(f"The uploaded image is not blurred with a variance of {variance:.2f}.")
+
+st.write("Note: Adjust the threshold value in the code as needed for your use case.")

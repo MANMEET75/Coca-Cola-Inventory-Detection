@@ -4,7 +4,7 @@ import cv2
 import pafy
 import base64
 from io import BytesIO
-
+import numpy as np
 import settings
 
 
@@ -26,16 +26,6 @@ def image_to_base64(image):
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-
-
-
-
-
-
-
-
-
-
 def display_tracker_options():
     display_tracker = st.radio("Display Tracker", ('Yes', 'No'))
     is_display_tracker = True if display_tracker == 'Yes' else False
@@ -44,56 +34,40 @@ def display_tracker_options():
         return is_display_tracker, tracker_type
     return is_display_tracker, None
 
-# Function to check if an image is blurred
-def is_image_blurred(uploaded_image, threshold=500):
-    # Convert BytesIO object to an image
-    pil_image = Image.open(uploaded_image)
-    
-    # Convert to a NumPy array
-    image = np.array(pil_image)
-    
-    # Convert the image to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Compute the Laplacian variance
-    variance = cv2.Laplacian(gray, cv2.CV_64F).var()
 
-    # Determine if the image is blurred
-    is_blurred = variance < threshold
+def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=None, tracker=None):
+    """
+    Display the detected objects on a video frame using the YOLOv8 model.
 
-    return is_blurred, variance
-# def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=None, tracker=None):
-#     """
-#     Display the detected objects on a video frame using the YOLOv8 model.
+    Args:
+    - conf (float): Confidence threshold for object detection.
+    - model (YoloV8): A YOLOv8 object detection model.
+    - st_frame (Streamlit object): A Streamlit object to display the detected video.
+    - image (numpy array): A numpy array representing the video frame.
+    - is_display_tracking (bool): A flag indicating whether to display object tracking (default=None).
 
-#     Args:
-#     - conf (float): Confidence threshold for object detection.
-#     - model (YoloV8): A YOLOv8 object detection model.
-#     - st_frame (Streamlit object): A Streamlit object to display the detected video.
-#     - image (numpy array): A numpy array representing the video frame.
-#     - is_display_tracking (bool): A flag indicating whether to display object tracking (default=None).
+    Returns:
+    None
+    """
 
-#     Returns:
-#     None
-#     """
+    # Resize the image to a standard size
+    image = cv2.resize(image, (720, int(720*(9/16))))
 
-#     # Resize the image to a standard size
-#     image = cv2.resize(image, (720, int(720*(9/16))))
+    # Display object tracking, if specified
+    if is_display_tracking:
+        res = model.track(image, conf=conf, persist=True, tracker=tracker)
+    else:
+        # Predict the objects in the image using the YOLOv8 model
+        res = model.predict(image, conf=conf)
 
-#     # Display object tracking, if specified
-#     if is_display_tracking:
-#         res = model.track(image, conf=conf, persist=True, tracker=tracker)
-#     else:
-#         # Predict the objects in the image using the YOLOv8 model
-#         res = model.predict(image, conf=conf)
-
-#     # # Plot the detected objects on the video frame
-#     res_plotted = res[0].plot()
-#     st_frame.image(res_plotted,
-#                    caption='Detected Video',
-#                    channels="BGR",
-#                    use_column_width=True
-#                    )
+    # # Plot the detected objects on the video frame
+    res_plotted = res[0].plot()
+    st_frame.image(res_plotted,
+                   caption='Detected Video',
+                   channels="BGR",
+                   use_column_width=True
+                   )
 
 
 def play_youtube_video(conf, model):

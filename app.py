@@ -58,7 +58,7 @@ st.markdown('<div class="navbar">'
             '</div>'.format(helper.image_to_base64(logo_image)), unsafe_allow_html=True)
 
 # Function to check if an image is blurred
-def is_image_blurred(uploaded_image, threshold=10):
+def is_image_blurred(uploaded_image, threshold=550):
     # Convert BytesIO object to an image
     pil_image = Image.open(uploaded_image)
     
@@ -89,45 +89,19 @@ custom_confidence = float(st.sidebar.slider("Custom Model Confidence", 0, 100, 4
 if pretrained_confidence  < 0 or pretrained_confidence  > 1:
     st.error("Please select a valid confidence level between 0 and 100 for the pretrained model.")
 
-model_type = st.sidebar.radio("Select Task", ['Detection',"Detect Containers","Frooti Detection","Detect Polyethene","Detect Chocolates"])
+# model_type = st.sidebar.radio("Select Task", ['Detection',"Detect Containers","Frooti Detection","Detect Polyethene","Detect Chocolates"])
+model_type = st.sidebar.radio("Select Task", ["Inventory Detection"])
 
 if model_type == 'Detection':
     pretrained_model_path = Path(settings.DETECTION_MODEL)
     custom_model_path = Path(settings.CUSTOM_MODEL)
 
-    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
-    # if detection_type == 'Default':
-    #     model_path = Path(settings.DETECTION_MODEL)
-    #     show_input_image = True
-    # elif detection_type == 'Custom':
-    #     model_path = Path(settings.CUSTOM_MODEL)  # Update with the path to the custom model
-    #     show_input_image = False  # Set the flag to False to not display the input image
 
-
-elif model_type == 'Can Detection':
+elif model_type == 'Inventory Detection':
     # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
-    pretrained_model_path = Path(settings.CanDetectionModel)
+    pretrained_model_path = Path(settings.PollutedDetectionModel)
     custom_model_path = Path(settings.CUSTOM_MODEL)
 
-elif model_type == 'Frooti Detection':
-    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
-    pretrained_model_path = Path(settings.FrootiDetectionModel)
-    custom_model_path = Path(settings.CUSTOM_MODEL)
-elif model_type == 'Detect Containers':
-    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
-    pretrained_model_path = Path(settings.FrootiDetectionModel)
-    custom_model_path = Path(settings.CUSTOM_MODEL)
-elif model_type == 'Detect Polyethene':
-    # detection_type = st.sidebar.radio("Select Detection Type", ['Default', 'Custom'])
-    pretrained_model_path = Path(settings.FrootiDetectionModel)
-    custom_model_path = Path(settings.CUSTOM_MODEL)
-
-    # if detection_type == 'Default':
-    #     model_path = Path(settings.CanDetectionModel)
-    #     show_input_image = True
-    # elif detection_type == 'Custom':
-    #     model_path = Path(settings.CUSTOM_MODEL)  # Update with the path to the custom model
-    #     show_input_image = False  # Set the flag to False to not display the input image
 
 try:
     pretrained_model = helper.load_model(pretrained_model_path)
@@ -145,7 +119,9 @@ source_img = None
 totalNumberOfBottles = 0  # Initialize the global variable
 customNumberOfBottles = 0  # Initialize the variable for custom model
 
-if source_radio == settings.IMAGE:
+
+
+if source_radio == settings.IMAGE and model_type=="Inventory Detection":
     source_img = st.sidebar.file_uploader("Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'))
 
     col1, col2, col3 = st.columns(3)  # Create three columns for displaying images
@@ -209,62 +185,134 @@ if source_radio == settings.IMAGE:
             # Update the global variable
             totalNumberOfBottles = num_detected
 
+
             # Display the total count of detected elements
             st.write(f"Total number of detected elements (Detection): {num_detected}")
 
+            if num_detected>0:
+                st.write("Inventory is Polluted")
+            else:
+                st.write("Using detection method over here")
+                pretrained_model_path = Path(settings.DETECTION_MODEL)
+                custom_model_path = Path(settings.CUSTOM_MODEL)
 
-            custom_model_path = Path(settings.CUSTOM_MODEL)  # Update with the path to the custom model
+                try:
+                    pretrained_model = helper.load_model(pretrained_model_path)
+                    custom_model = helper.load_model(custom_model_path)
+                except Exception as ex:
+                    st.error(f"Unable to load model. Check the specified path: {pretrained_model} and {custom_model_path}")
+                    st.error(ex)
 
 
-            if custom_confidence < 0 or custom_confidence > 1:
-                st.error("Please select a valid confidence level between 0 and 100 for the custom model.")
+                res = pretrained_model.predict(uploaded_image, conf=pretrained_confidence )
+                num_detected = 0  # Initialize the counter for detected elements
 
-            try:
-                custom_model = helper.load_model(custom_model_path)
-            except Exception as ex:
-                st.error(f"Unable to load custom model. Check the specified path: {custom_model_path}")
-                st.error(ex)
+                for i, result in enumerate(res):
+                    boxes = result.boxes
+                    class_names = result.names
 
-            if source_radio == settings.IMAGE and source_img is not None:
-                res_custom = custom_model.predict(uploaded_image, conf=custom_confidence)
-                custom_num_detected = 0  # Initialize the counter for custom model detected elements
+                    # Count the number of detected elements
+                    num_detected += len(boxes)
 
-                col1, col2 = st.columns(2)  # Create two columns for displaying images
+                    # settting the confidence level of the unessential classes over here
+                    # Set confidence level of "Person" class to 0
+                    for j in range(len(class_names)):
+                        if class_names[j] == "Person":
+                            result.scores[j] = 0.0
+    
+                    res_plotted = result.plot()[:, :, ::-1]
+                    if i == 0:
+                        with col2:
+                            st.image(res_plotted, caption=f'Detected Image {i+1}', use_column_width=True)
+                            try:
+                                with st.expander(f"Detection Results {i+1}"):
+                                    for box, name in zip(boxes, class_names):
+                                        st.write(f"Class: {name}, Box: {box.data}")
+                            except Exception as ex:
+                                st.write(f"No objects detected in the image {i+1}!")
+                    elif i == 1:
+                        with col3:
+                            st.image(res_plotted, caption=f'Detected Image {i+1}', use_column_width=True)
+                            try:
+                                with st.expander(f"Detection Results {i+1}"):
+                                    for box, name in zip(boxes, class_names):
+                                        st.write(f"Class: {name}, Box: {box.data}")
+                            except Exception as ex:
+                                st.write(f"No objects detected in the image {i+1}!")
 
-                with col1:
-                    st.image(uploaded_image, caption="Input Image", use_column_width=True)
+                # Update the global variable
+                totalNumberOfBottles = num_detected
 
-                with col2:
-                    for i, result in enumerate(res_custom):
-                        boxes = result.boxes
-                        class_names = result.names
+                # Display the total count of detected elements
+                st.write(f"Total number of detected elements (Detection): {num_detected}")
 
-                        # Count the number of custom model detected elements
-                        custom_num_detected += len(boxes)
 
-                        res_plotted = result.plot()[:, :, ::-1]
-                        st.image(res_plotted, caption=f'Detected Image (Custom) {i+1}', use_column_width=True)
-                        try:
-                            with st.expander(f"Detection Results (Custom) {i+1}"):
-                                for box, name in zip(boxes, class_names):
-                                    st.write(f"Class: {name}, Box: {box.data}")
-                        except Exception as ex:
-                            st.write(f"No objects detected in the image {i+1} for the custom model!")
+                custom_model_path = Path(settings.CUSTOM_MODEL)  # Update with the path to the custom model
 
-                # Calculate the difference between the number of detections
-                customNumberOfBottles = custom_num_detected
-                difference = totalNumberOfBottles - customNumberOfBottles
 
-                # Display the total count of detected elements for the custom model
-                st.write(f"Total number of detected elements (Custom): {custom_num_detected}")
+                if custom_confidence < 0 or custom_confidence > 1:
+                    st.error("Please select a valid confidence level between 0 and 100 for the custom model.")
 
-                # Display the difference in detections
-                st.write(f"Difference between Detection and Custom: {difference}")
+                try:
+                    custom_model = helper.load_model(custom_model_path)
+                except Exception as ex:
+                    st.error(f"Unable to load custom model. Check the specified path: {custom_model_path}")
+                    st.error(ex)
 
-                if difference>0:
-                    st.write("Inventory is Polluted")
-                else:
-                    st.write("Inventory is not Polluted")
+                if source_radio == settings.IMAGE and source_img is not None:
+                    res_custom = custom_model.predict(uploaded_image, conf=custom_confidence)
+                    custom_num_detected = 0  # Initialize the counter for custom model detected elements
+
+                    col1, col2 = st.columns(2)  # Create two columns for displaying images
+
+                    with col1:
+                        st.image(uploaded_image, caption="Input Image", use_column_width=True)
+
+                    with col2:
+                        for i, result in enumerate(res_custom):
+                            boxes = result.boxes
+                            class_names = result.names
+
+                            # Count the number of custom model detected elements
+                            custom_num_detected += len(boxes)
+
+                            res_plotted = result.plot()[:, :, ::-1]
+                            st.image(res_plotted, caption=f'Detected Image (Custom) {i+1}', use_column_width=True)
+                            try:
+                                with st.expander(f"Detection Results (Custom) {i+1}"):
+                                    for box, name in zip(boxes, class_names):
+                                        st.write(f"Class: {name}, Box: {box.data}")
+                            except Exception as ex:
+                                st.write(f"No objects detected in the image {i+1} for the custom model!")
+
+                    # Calculate the difference between the number of detections
+                    customNumberOfBottles = custom_num_detected
+                    difference = totalNumberOfBottles - customNumberOfBottles
+
+                    # Display the total count of detected elements for the custom model
+                    st.write(f"Total number of detected elements (Custom): {custom_num_detected}")
+
+                    # Display the difference in detections
+                    st.write(f"Difference between Detection and Custom: {difference}")
+
+                    if difference>0:
+                        st.write("Inventory is Polluted")
+                    else:
+                        st.write("Inventory is not Polluted")
+
+
+
+
+
+
+
+                
+                
+                
+
+
+
+           
 
                 
 # elif source_radio == settings.VIDEO:

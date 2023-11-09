@@ -4,3 +4,5 @@ youtube-dl
 streamlit
 pytube
 pafy
+bentoml==1.0.25
+fastapi

@@ -45,12 +45,12 @@ VIDEOS_DICT = {
 
 # ML Model config
 MODEL_DIR = ROOT / 'weights'
-DETECTION_MODEL = MODEL_DIR / 'yolov8l.pt'
+DETECTION_MODEL = MODEL_DIR / 'yolov8x.pt'
 SEGMENTATION_MODEL = MODEL_DIR / 'yolov8n-seg.pt'
-CUSTOM_MODEL = MODEL_DIR / 'TrainedOn2023Images.pt'
+CUSTOM_MODEL = MODEL_DIR / 'CokeDetectionAI.pt'
 # CanDetectionModel = MODEL_DIR / 'cans.pt'
 FrootiDetectionModel = MODEL_DIR / 'frooti.pt'
-ContainerDetectionModel = MODEL_DIR / 'cans.pt'
+PollutedDetectionModel = MODEL_DIR / 'best.pt'
 
 # Webcam
 WEBCAM_PATH = 0
