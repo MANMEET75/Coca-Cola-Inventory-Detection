@@ -20,6 +20,8 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 # Run the following command to create a separate Streamlit application for blur detection
+```bash
+# Finally run the following command
 streamlit run main.py
 ```
 ## AWS-CICD-Deployment-with-Github-Actions
